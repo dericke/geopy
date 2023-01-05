@@ -294,13 +294,14 @@ async def test_synchronize_decorator_async_exception():
 async def test_synchronize_decorator_sync_reentrance(adapter_factory):
     calls = []
 
+
+
     class DummyGeocoder(Geocoder):
         @_synchronized
         def f(self, i=0):
             calls.append(i)
-            if len(calls) < 5:
-                return self.f(i + 1)
-            return 42
+            return self.f(i + 1) if len(calls) < 5 else 42
+
 
     geocoder = DummyGeocoder(adapter_factory=adapter_factory)
 
@@ -314,15 +315,17 @@ async def test_synchronize_decorator_sync_reentrance(adapter_factory):
 async def test_synchronize_decorator_async_reentrance():
     calls = []
 
+
+
     class DummyGeocoder(Geocoder):
         @_synchronized
         def f(self, i=0):
             async def coro():
                 calls.append(i)
-                if len(calls) < 5:
-                    return await self.f(i + 1)
-                return 42
+                return await self.f(i + 1) if len(calls) < 5 else 42
+
             return coro()
+
 
     geocoder = DummyGeocoder(adapter_factory=DummyAsyncAdapter)
 
