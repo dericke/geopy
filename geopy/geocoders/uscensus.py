@@ -135,10 +135,7 @@ class USCensus(Geocoder):
             return_type = 'geographies'
             params['vintage'] = f"{geography_vintage}_{spatial_benchmark}"
             if layers:
-                if isinstance(layers, str):
-                    params['layers'] = layers
-                else:
-                    params['layers'] = ','.join(layers)
+                params['layers'] = layers if isinstance(layers, str) else ','.join(layers)
         else:
             return_type = 'locations'
         url = f"{self.api}/{return_type}/{search_type}?{urlencode(params)}"
@@ -180,10 +177,14 @@ class USCensus(Geocoder):
             in the case that JSON data contains multiple matched address.
         """
         result = json_data['result']
-        address_matches = result['addressMatches']
-        if not address_matches:
-            return None
-        if exactly_one:
-            return USCensus._parse_address_match(address_matches[0])
+        if address_matches := result['addressMatches']:
+            return (
+                USCensus._parse_address_match(address_matches[0])
+                if exactly_one
+                else [
+                    USCensus._parse_address_match(match)
+                    for match in address_matches
+                ]
+            )
         else:
-            return [USCensus._parse_address_match(match) for match in address_matches]
+            return None

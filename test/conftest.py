@@ -121,15 +121,16 @@ def pretty_dict_format(heading, dict_to_format,
                        value_mapper=lambda v: v):
     s = [heading]
     if not dict_to_format:
-        s.append(item_prefix + '-- empty --')
+        s.append(f'{item_prefix}-- empty --')
     else:
         max_key_len = max(len(k) for k in dict_to_format.keys())
-        for k, v in sorted(dict_to_format.items()):
-            s.append('%s%s%s' % (item_prefix, k.ljust(max_key_len + 2),
-                                 value_mapper(v)))
+        s.extend(
+            f'{item_prefix}{k.ljust(max_key_len + 2)}{value_mapper(v)}'
+            for k, v in sorted(dict_to_format.items())
+        )
         if legend:
             s.append('')
-            s.append('* %s' % legend)
+            s.append(f'* {legend}')
     s.append('')  # trailing newline
     return '\n'.join(s)
 
@@ -196,7 +197,7 @@ def print_requests_monitor_report(requests_monitor):
     yield
 
     def report():
-        print(str(requests_monitor))
+        print(requests_monitor)
 
     # https://github.com/pytest-dev/pytest/issues/2704
     # https://stackoverflow.com/a/38806934
@@ -337,9 +338,6 @@ class BaseAdapterProxy:
                     #
                     # Re-raise -- don't retry this request
                     raise
-                else:
-                    # Swallow the error and retry the request
-                    pass
             except Exception:
                 if i == retries:
                     raise
