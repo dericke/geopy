@@ -68,17 +68,14 @@ class What3Words(Geocoder):
 
         self.api_key = api_key
         domain = 'api.what3words.com'
-        self.geocode_api = '%s://%s%s' % (self.scheme, domain, self.geocode_path)
-        self.reverse_api = '%s://%s%s' % (self.scheme, domain, self.reverse_path)
+        self.geocode_api = f'{self.scheme}://{domain}{self.geocode_path}'
+        self.reverse_api = f'{self.scheme}://{domain}{self.reverse_path}'
 
     def _check_query(self, query):
         """
         Check query validity with regex
         """
-        if not self.multiple_word_re.match(query):
-            return False
-        else:
-            return True
+        return bool(self.multiple_word_re.match(query))
 
     def geocode(
             self,
@@ -139,7 +136,7 @@ class What3Words(Geocoder):
 
         if code:
             # https://docs.what3words.com/api/v2/#errors
-            exc_msg = "Error returned by What3Words: %s" % resources['status']['message']
+            exc_msg = f"Error returned by What3Words: {resources['status']['message']}"
             if code == 401:
                 raise exc.GeocoderAuthenticationFailure(exc_msg)
 
@@ -163,10 +160,7 @@ class What3Words(Geocoder):
                 raise exc.GeocoderParseError('Error parsing result.')
 
         location = parse_resource(resources)
-        if exactly_one:
-            return location
-        else:
-            return [location]
+        return location if exactly_one else [location]
 
     def reverse(
             self,
