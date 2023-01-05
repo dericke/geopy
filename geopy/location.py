@@ -111,9 +111,7 @@ class Location:
         return self._address
 
     def __repr__(self):
-        return "Location(%s, (%s, %s, %s))" % (
-            self._address, self.latitude, self.longitude, self.altitude
-        )
+        return f"Location({self._address}, ({self.latitude}, {self.longitude}, {self.altitude}))"
 
     def __iter__(self):
         return iter(self._tuple)

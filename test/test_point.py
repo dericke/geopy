@@ -207,7 +207,7 @@ class PointTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             point[None]
 
-        point[0:2] = (self.lat + 10, self.lon + 10)
+        point[:2] = (self.lat + 10, self.lon + 10)
         self.assertEqual((self.lat + 10, self.lon + 10, self.alt),
                          tuple(point))
 
@@ -259,10 +259,7 @@ class PointTestCase(unittest.TestCase):
         self.assertEqual(point.altitude, self.alt)
 
     def test_point_eq(self):
-        self.assertEqual(
-            Point(self.lat, self.lon),
-            Point("%s %s" % (self.lat, self.lon))
-        )
+        self.assertEqual(Point(self.lat, self.lon), Point(f"{self.lat} {self.lon}"))
 
     def test_point_ne(self):
         self.assertTrue(

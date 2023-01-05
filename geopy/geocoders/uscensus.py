@@ -67,7 +67,7 @@ class USCensus(Geocoder):
             ssl_context=ssl_context,
             adapter_factory=adapter_factory
         )
-        self.api = "%s://%s/geocoder" % (self.scheme, domain)
+        self.api = f"{self.scheme}://{domain}/geocoder"
 
     def geocode(
         self,
@@ -129,19 +129,16 @@ class USCensus(Geocoder):
         else:
             search_type = 'address'
             params = self._filter_params(query, self.structured_query_params)
-        params['benchmark'] = "%s_%s" % (dataset_type, spatial_benchmark)
+        params['benchmark'] = f"{dataset_type}_{spatial_benchmark}"
         params['format'] = 'json'
         if geolookup:
             return_type = 'geographies'
-            params['vintage'] = "%s_%s" % (geography_vintage, spatial_benchmark)
+            params['vintage'] = f"{geography_vintage}_{spatial_benchmark}"
             if layers:
-                if isinstance(layers, str):
-                    params['layers'] = layers
-                else:
-                    params['layers'] = ','.join(layers)
+                params['layers'] = layers if isinstance(layers, str) else ','.join(layers)
         else:
             return_type = 'locations'
-        url = "%s/%s/%s?%s" % (self.api, return_type, search_type, urlencode(params))
+        url = f"{self.api}/{return_type}/{search_type}?{urlencode(params)}"
         logger.debug("%s.geocode: %s", self.__class__.__name__, url)
         callback = partial(self._parse_json, exactly_one=exactly_one)
         return self._call_geocoder(url, callback, timeout=timeout)
@@ -180,10 +177,14 @@ class USCensus(Geocoder):
             in the case that JSON data contains multiple matched address.
         """
         result = json_data['result']
-        address_matches = result['addressMatches']
-        if not address_matches:
-            return None
-        if exactly_one:
-            return USCensus._parse_address_match(address_matches[0])
+        if address_matches := result['addressMatches']:
+            return (
+                USCensus._parse_address_match(address_matches[0])
+                if exactly_one
+                else [
+                    USCensus._parse_address_match(match)
+                    for match in address_matches
+                ]
+            )
         else:
-            return [USCensus._parse_address_match(match) for match in address_matches]
+            return None
